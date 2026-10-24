@@ -623,7 +623,7 @@
     return true;
   }
   // a filter change also rewinds the agenda to its first page
-  function applyFilters() { syncFilters(); renderViewNote(); renderCal(); renderAgenda(); renderBoard(); updateSubscribe(); saveFilters(); }
+  function applyFilters() { syncFilters(); renderViewNote(); renderCal(); renderAgenda(); renderBoard(); updateSubscribe(); saveFilters(); if (window.LQAMap) LQAMap.render(); } // KONA: the pins follow the filters
   // ---- the view note (2026-09-20, for readers who never open the panel) ----
   // One plain line above the list while the view is not the usual one: the
   // preset's name when one matches, else what is hidden or added compared
@@ -970,7 +970,7 @@
   var boardEnd = null; // the first of the last month on the grid
   function monthOpen() { return document.documentElement.classList.contains('month-open'); }
   function syncViewSwitch() { // the knob and the stops follow the view on show
-    var v = !$('teamsView').hidden ? 'teams' : monthOpen() ? 'month' : 'events';
+    var v = (window.LQAMap && LQAMap.isOpen()) ? 'map' : !$('teamsView').hidden ? 'teams' : monthOpen() ? 'month' : 'events'; // KONA: the Map view (local-map.js) is a fourth stop
     $('viewToggle').dataset.active = v;
     $('viewToggle').querySelectorAll('button[data-view]').forEach(function (b) { b.setAttribute('aria-checked', String(b.dataset.view === v)); });
   }
@@ -1250,6 +1250,7 @@
   // every club's schedule in one list; 'auto' is the view's own choice
   // (defaultTeamSlug), made once the schedules are in.
   function setTeamsView(slug, push) {
+    if (slug && window.LQAMap && LQAMap.isOpen()) LQAMap.open(false, false); // KONA: a ?team= link or popstate opens Teams over the map
     var open = !!slug;
     document.documentElement.classList.toggle('teams-open', open);
     var bn = document.querySelector('.bar-name'), h1 = document.querySelector('.masthead h1'); // the masthead and the pinned bar's title name the view: the events, or the clubs
@@ -3383,6 +3384,10 @@
     var view = b && b.dataset.view !== cur ? b.dataset.view : nextStop($('viewToggle'), 'data-view', cur);
     b = $('viewToggle').querySelector('button[data-view="' + view + '"]');
     if (!b) return;
+    if (window.LQAMap) { // KONA: Map in, or out of, the cycle
+      if (b.dataset.view === 'map') { if (!$('teamsView').hidden) setTeamsView(null, true); setMonthView(false, true); LQAMap.open(true, true); return; }
+      if (LQAMap.isOpen()) LQAMap.open(false, true);
+    }
     if (b.dataset.view === 'teams') { if ($('teamsView').hidden) setTeamsView(teamView.slug || new URLSearchParams(location.search).get('team') || 'auto', true); return; }
     if (!$('teamsView').hidden) setTeamsView(null, true);
     setMonthView(b.dataset.view === 'month', true);
@@ -4315,4 +4320,6 @@
   }
   // a ?team= link opens the Teams view straight away
   if (new URLSearchParams(location.search).get('team')) setTeamsView(new URLSearchParams(location.search).get('team'), false);
+  window.LQAHooks = { dayItems: dayItems, byDate: function () { return state.byDate; }, boardEntry: boardEntry, closeDayPop: closeDayPop, syncViewSwitch: syncViewSwitch, fitFilterBar: fitFilterBar, todayStr: todayStr, venueColor: venueColor }; // KONA: what local-map.js borrows
+
 })();

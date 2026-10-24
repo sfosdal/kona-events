@@ -71,9 +71,10 @@
   // the Donkey Mill Art Center, the Outrigger Kona's ballroom (aggregators
   // only), Hawaiʻi Volcanoes (the east side) and the Ironman (one day a year).
   var TM_EXCLUDE = /season tickets?|parking|suite|\btours?\b|ticket packages?|vip (upgrade|package|tailgate)|club (level|seating)|^half price:|\b\d+[- ]day pass|grounds pass|all[- ]session|mini[- ]plan|lawn chair|cabana/i;
-  var VENUES = {
+  var VENUES = { // geo: [lat, lon] puts the room on the Map view (site/local-map.js); Nominatim once at build time, four placed by hand
     // --- Kona: the Palani Road grounds, the Kainaliu playhouse, the parks, the festival ---
     'KBXtreme': { // the bowling-and-arcade complex on Palani Road whose lot stages the touring reggae and island acts (See Tickets box office; Ticketmaster's two ids watched)
+      geo: [19.644, -155.988], // Palani Road at Kona Commons (placed by hand — the street number does not geocode)
       capacity: 3300,
       type: 'concert',
       cssVar: '--v-kbx',
@@ -84,6 +85,7 @@
       alias: /kbxtreme|kbx ?treme|kona bowl/i,
     },
     'Kona Coffee Cultural Festival': { // ten November days of farm tours, tastings, the parade and the Miss Kona Coffee pageant across the district — its calendar page (fetch-events.mjs parseKccf), each day a row
+      geo: [19.63691, -155.99259], // Hale Hālāwai on Aliʻi Drive, the festival's village hub
       capacity: 5000,
       festival: true,
       type: 'community',
@@ -94,6 +96,7 @@
       alias: /kona coffee (cultural )?fest/i,
     },
     'Aloha Theatre': { // the 1932 plantation-era playhouse in Kainaliu, the Aloha Performing Arts Company's stage — its Ludus box office
+      geo: [19.53309, -155.92728],
       capacity: 350,
       type: 'arts',
       cssVar: '--v-aloha',
@@ -104,6 +107,7 @@
       alias: /aloha theat|aloha performing arts|\bapac\b/i,
     },
     'Puʻuhonua o Hōnaunau National Historical Park': { // the place of refuge south of Kealakekua Bay — its ranger talks and cultural festival (the NPS events API; the daily craft demonstrations left out)
+      geo: [19.42239, -155.90943],
       capacity: 300,
       type: 'community',
       cssVar: '--v-puuhonua',
@@ -114,6 +118,7 @@
       alias: /pu.uhonua|h[oō]naunau/i,
     },
     'Kaloko-Honokōhau National Historical Park': { // the fishponds and petroglyphs north of Kailua — ranger-led walks (the NPS events API)
+      geo: [19.68182, -156.02709],
       capacity: 200,
       type: 'community',
       cssVar: '--v-kaloko',
@@ -125,6 +130,7 @@
     },
     // --- Kohala, Waimea and Honokaʻa ---
     'Waikoloa Bowl at Queens’ Gardens': { // the resort's outdoor amphitheatre, lawn seating for the touring concerts (Ticketmaster)
+      geo: [19.9135, -155.8812], // the lawn on the MarketPlace's mauka side (by hand)
       capacity: 3000,
       type: 'concert',
       area: 'town',
@@ -136,6 +142,7 @@
       alias: /waikoloa bowl|queen.?s.? gardens/i,
     },
     'Hilton Waikoloa Village': { // the 62-acre resort — its Palace Lawn concerts and ballroom shows (Ticketmaster, both ids)
+      geo: [19.92459, -155.88893],
       capacity: 2000,
       type: 'concert',
       area: 'town',
@@ -147,6 +154,7 @@
       alias: /hilton waikoloa|palace lawn/i,
     },
     'Queens’ MarketPlace': { // the Waikoloa Beach Resort's shopping village — hula and music on the Coronation Pavilion (The Events Calendar REST; the lessons, run clubs and markets left out)
+      geo: [19.91418, -155.88011],
       capacity: 1000,
       type: 'community',
       area: 'town',
@@ -158,6 +166,7 @@
       alias: /queen.?s.? marketplace|coronation pavilion/i,
     },
     'Kings’ Shops': { // the resort's other shopping centre — cultural demonstrations, the Fires of Polynesia and concerts on the lawn (its EyeOn calendar, fetch-events.mjs kingsShops)
+      geo: [19.9172, -155.8818], // across Waikoloa Beach Drive from the MarketPlace (by hand)
       capacity: 800,
       type: 'community',
       area: 'town',
@@ -168,6 +177,7 @@
       alias: /king.?s.? shops/i,
     },
     'Kahilu Theatre': { // Waimea's 490-seat performing-arts hall — its own season page (`cards`) leads, Ticketmaster second
+      geo: [20.01912, -155.66737],
       capacity: 490,
       type: 'arts',
       area: 'town',
@@ -180,6 +190,7 @@
       alias: /kahilu/i,
     },
     'Honokaʻa People’s Theatre': { // the 1930 plantation-town movie house on Māmane Street, 525 seats — its shows link to Eventbrite (`linked`)
+      geo: [20.0787, -155.4665], // Mamane Street, Honokaʻa town (by hand)
       capacity: 525,
       type: 'concert',
       area: 'town',
@@ -191,6 +202,7 @@
       alias: /honoka.a people|people.?s theat/i,
     },
     'Puʻukoholā Heiau National Historic Site': { // Kamehameha's temple above Kawaihae harbour — the August cultural festival and ranger programmes (the NPS events API)
+      geo: [20.02802, -155.82112],
       capacity: 300,
       type: 'community',
       area: 'town',
