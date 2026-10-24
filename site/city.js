@@ -298,6 +298,31 @@
     ics: { name: 'Kona Events', short: 'Kona Events', teams: 'Hawaiʻi teams — every season', prodid: '-//here.events//kona-events//EN', uidDomain: 'fosdal.net', // the UID domain the whole family issues (the shared ics test pins it)
       desc: 'Upcoming events in Kona\, HI — KBXtreme\, the Aloha Theatre\, the Kona Coffee Cultural Festival\, the national parks of the Kona coast\, the Waikoloa resorts and shops\, the Kahilu Theatre in Waimea and the People\'s Theatre in Honokaʻa' },
     teams: TEAMS,
+    // the Map view (site/local-map.js, the Map stop): the ground scripts/build-local-map.mjs draws into site/local-map.json
+    // — the island's outline from Natural Earth (public domain), Maui and Kahoʻolawe faint beside it — with a pin on every
+    // room above that carries geo: [lat, lon]. Steve, 2026-10-24 ("local map view for event locations"); shared with lqa and
+    // Seattle the same day, the ground read once at build time, never on the page.
+    map: {
+      kind: 'island',
+      country: 'USA',
+      land: [[19.6, -155.5]], // a point on each ring to draw as land
+      far: [[20.8, -156.3], [20.55, -156.6]], // the neighbours, faint
+      labels: [ // the places a visitor steers by; anchor: which side of the dot the name sits
+        { name: 'Kailua-Kona', lat: 19.64, lon: -155.996, anchor: 'end' },
+        { name: 'Captain Cook', lat: 19.497, lon: -155.918, anchor: 'end' },
+        { name: 'Hawi', lat: 20.241, lon: -155.834, anchor: 'start' },
+        { name: 'Waimea', lat: 20.023, lon: -155.668, anchor: 'start', dy: 14 },
+        { name: 'Honokaʻa', lat: 20.08, lon: -155.467, anchor: 'start', dy: -6 },
+        { name: 'Hilo', lat: 19.724, lon: -155.087, anchor: 'start' },
+        { name: 'Pāhoa', lat: 19.494, lon: -154.944, anchor: 'start' },
+        { name: 'Volcano', lat: 19.44, lon: -155.233, anchor: 'start' },
+        { name: 'Nāʻālehu', lat: 19.065, lon: -155.586, anchor: 'start' },
+        { name: 'Kona Airport (KOA)', lat: 19.739, lon: -156.045, anchor: 'end' },
+        { name: 'Mauna Kea', lat: 19.821, lon: -155.468, kind: 'peak' },
+        { name: 'Mauna Loa', lat: 19.475, lon: -155.608, kind: 'peak' },
+        { name: 'Hualālai', lat: 19.689, lon: -155.864, kind: 'peak' },
+      ],
+    },
     venues: VENUES,
     feeds: FEEDS,
     defaultOn: DEFAULT_ON,

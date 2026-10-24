@@ -1,15 +1,17 @@
-// Kona's Map view and the worded view stops (Steve, 2026-10-24, "go with
-// 2 & 3 for just Kona"). City-owned, loaded after the shared app.js, which
-// lends it a few functions through window.LQAHooks (its five "// KONA:"
-// lines — re-apply them if sync-shared.sh ever re-copies app.js).
+// The Map view — the fourth stop of the view toolbar, in a city whose city.js
+// carries a `map` block and `geo: [lat, lon]` on its rooms (Steve, 2026-10-24,
+// "local map view for event locations": Kona first, then lqa and Seattle).
+// Shared: synced from lqa by sync-shared.sh; a city without a map simply does
+// not load it (no Map stop in its index.html), and app.js's hooks stay quiet.
 //
-// The map is local-map.json (scripts/build-local-map.mjs: the island's
-// outline from Natural Earth, the towns, the volcanoes) drawn as one SVG,
-// with a pin on every room in city.js that carries geo: [lat, lon]. A pin
-// is sized by the room's upcoming events under the filters in force and
-// opens a card of them (the month view's day card) with the room's own
-// site at its foot. Wheel, pinch, drag and the +/−/fit buttons zoom and
-// pan; two rooms on one spot are nudged apart so both can be tapped.
+// The ground is local-map.json (scripts/build-local-map.mjs — an island's
+// outline from Natural Earth, or a city's shoreline, lakes and main roads
+// from OpenStreetMap, read once at build time and committed), drawn as one
+// SVG with a pin on every room that has geo. A pin is sized by the room's
+// upcoming events under the filters in force and opens a card of them (the
+// month view's day card) with the room's own site at its foot. Wheel, pinch,
+// drag and the +/−/fit buttons zoom and pan; two rooms on one spot are nudged
+// apart so both can be tapped. app.js lends what it needs via window.LQAHooks.
 (function () {
   'use strict';
   var $ = function (id) { return document.getElementById(id); };
@@ -20,27 +22,22 @@
   var NS = 'http://www.w3.org/2000/svg';
   var openVenue = null, rafId = 0;
 
-  // ---- the toolbar's knob: under the lit stop, however wide its word makes it ----
-  function placeKnob() {
-    var t = $('viewToggle'), b = t && t.querySelector('button[aria-checked="true"]');
-    if (!b) return;
-    t.style.setProperty('--knob-x', b.offsetLeft + 'px'); t.style.setProperty('--knob-w', b.offsetWidth + 'px');
-  }
-  new MutationObserver(placeKnob).observe($('viewToggle'), { attributes: true, subtree: true, attributeFilter: ['data-active', 'aria-checked'] });
-  new MutationObserver(placeKnob).observe(document.querySelector('.filterbar'), { attributes: true, attributeFilter: ['class'] }); // is-tight on and off
-  window.addEventListener('resize', placeKnob);
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(placeKnob);
-  placeKnob();
-
-  // ---- the map ----
   function el(tag, attrs, parent) { var e = document.createElementNS(NS, tag); for (var k in attrs) if (attrs[k] != null) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
   function px(lat, lon) { var p = data.proj; return [(lon - p.cx) * p.k * p.s + p.w / 2, (p.cy - lat) * p.s + p.h / 2]; }
   function version() { var s = document.querySelector('script[src*="local-map.js"]'); var m = s && /[?&]v=([^&]+)/.exec(s.getAttribute('src')); return m ? m[1] : ''; }
   function load() {
     if (data) return Promise.resolve(data);
     return fetch('local-map.json' + (version() ? '?v=' + version() : '')).then(function (r) { return r.json(); }).then(function (d) {
-      data = d; FRAME = { w: d.proj.w, h: d.proj.h }; if (!view) fit(false); return d;
+      data = d; FRAME = { w: d.proj.w, h: d.proj.h };
+      svg.parentElement.style.setProperty('--lm-ar', FRAME.w / FRAME.h); // the frame takes the ground's shape
+      if (!view) home(false); return d;
     });
+  }
+  // the view at first: the city's `home` box (a wider frame holds the out-of-town rooms), else the whole frame
+  function home(draw) {
+    if (data && data.home) { var h = data.home, w = Math.max(h[2], h[3] * FRAME.w / FRAME.h); view = { x: h[0] + h[2] / 2 - w / 2, y: h[1] + h[3] / 2 - w * FRAME.h / FRAME.w / 2, w: w, h: w * FRAME.h / FRAME.w }; }
+    else fit(false);
+    if (draw !== false) render();
   }
   function fit(draw) { view = { x: 0, y: 0, w: FRAME.w, h: FRAME.h }; if (draw !== false) render(); }
   function unit() { var r = svg.getBoundingClientRect(); return r.width ? view.w / r.width : 1; }
@@ -57,7 +54,9 @@
   }
 
   // pins closer than a tap apart are pushed off each other (a few iterations
-  // of pairwise repulsion); a moved pin keeps a hair back to its true spot
+  // of pairwise repulsion), but never farther than their own radius from the
+  // true spot (p.cap) — the venue stays under its disc; where a city's rooms
+  // sit closer than that, the discs overlap, and a zoom in parts them
   function spread(pins, gap) {
     for (var it = 0; it < 40; it++) {
       var moved = false;
@@ -68,6 +67,7 @@
         if (d < .01) { ux = 1; uy = 0; }
         a.x -= ux * push; a.y -= uy * push; b.x += ux * push; b.y += uy * push; moved = true;
       }
+      pins.forEach(function (p) { var ex = p.x - p.ox, ey = p.y - p.oy, e = Math.sqrt(ex * ex + ey * ey); if (e > p.cap) { p.x = p.ox + ex / e * p.cap; p.y = p.oy + ey / e * p.cap; } });
       if (!moved) break;
     }
   }
@@ -104,35 +104,50 @@
     svg.setAttribute('viewBox', [view.x, view.y, view.w, view.h].map(function (v) { return v.toFixed(2); }).join(' '));
     svg.style.setProperty('--u', u);
     while (svg.firstChild) svg.removeChild(svg.firstChild);
-    var zoom = FRAME.w / view.w; // 1 = the whole island
-    // the land
-    data.neighbours.forEach(function (d) { el('path', { d: d, 'class': 'lm-far' }, svg); });
-    el('path', { d: data.island, 'class': 'lm-island' }, svg);
-    // the rooms: size by count, then nudged apart, then labelled
+    var zoom = FRAME.w / view.w; // 1 = the whole frame
+    // ---- the ground ----
+    if (data.kind === 'urban') { // land everywhere inside the frame, the sea and the lakes over it, then the roads
+      el('rect', { x: 0, y: 0, width: FRAME.w, height: FRAME.h, 'class': 'lm-land' }, svg);
+      (data.sea || []).forEach(function (d) { el('path', { d: d, 'class': 'lm-sea', 'fill-rule': 'evenodd' }, svg); });
+      (data.water || []).forEach(function (d) { el('path', { d: d, 'class': 'lm-water', 'fill-rule': 'evenodd' }, svg); });
+      ['secondary', 'primary', 'trunk', 'motorway'].forEach(function (c) { if (data.roads && data.roads[c]) el('path', { d: data.roads[c], 'class': 'lm-road lm-road-' + c }, svg); });
+    } else {
+      (data.far || data.neighbours || []).forEach(function (d) { el('path', { d: d, 'class': 'lm-far' }, svg); });
+      (data.land || [data.island]).forEach(function (d) { el('path', { d: d, 'class': 'lm-island' }, svg); });
+    }
+    // ---- the rooms: size by count, then nudged apart, then labelled ----
     var t = tally(), fs = 12.5 * u, total = 0;
     var pins = ROOMS.map(function (v) {
       var p = px(VENUES[v].geo[0], VENUES[v].geo[1]), n = t.n[v] || 0; total += n;
-      return { v: v, name: v.replace(/ National Historic(al)? (Park|Site)$/, ''), ox: p[0], oy: p[1], x: p[0], y: p[1], n: n, r: (n ? 7 + 2.2 * Math.sqrt(n) : 5) * u, color: H.venueColor(v) };
+      return { v: v, name: VENUES[v].short || v.replace(/ National Historic(al)? (Park|Site)$/, ''), ox: p[0], oy: p[1], x: p[0], y: p[1], n: n, r: (n ? 7 + 2.2 * Math.sqrt(n) : 5) * u, color: H.venueColor(v) };
     });
+    // crowding: the discs in view may cover about a sixth of it; past that every disc shrinks alike (a dense city at the whole-frame zoom), never below half
+    var area = 0; pins.forEach(function (p) { if (p.ox > view.x - p.r && p.ox < view.x + view.w + p.r && p.oy > view.y - p.r && p.oy < view.y + view.h + p.r) area += Math.PI * p.r * p.r; });
+    var shrink = Math.min(1, Math.max(.5, Math.sqrt(.16 * view.w * view.h / (area || 1))));
+    pins.forEach(function (p) { p.r *= shrink; p.cap = Math.max(p.r * .9, 10 * u); });
     spread(pins, 3 * u);
     var boxes = placeLabels(pins, fs);
-    // the towns and the peaks, where a pin's label has not taken the spot
+    // ---- the places a visitor steers by, where a pin's label has not taken the spot ----
     var tfs = 10.5 * u;
-    function townFree(x, y, w, anchor) { var bx = { x: anchor === 'end' ? x - w : anchor === 'middle' ? x - w / 2 : x, y: y - tfs, w: w, h: tfs * 1.3 }; if (bx.x < view.x || bx.x + bx.w > view.x + view.w || bx.y < view.y || bx.y + bx.h > view.y + view.h) return false; return !boxes.some(function (o) { return bx.x < o.x + o.w && bx.x + bx.w > o.x && bx.y < o.y + o.h && bx.y + bx.h > o.y; }) && (boxes.push(bx), true); }
-    data.peaks.forEach(function (k) {
-      var x = k.xy[0], y = k.xy[1], s = 5 * u;
-      el('path', { d: 'M' + (x - s) + ' ' + (y + s * .8) + 'L' + x + ' ' + (y - s) + 'L' + (x + s) + ' ' + (y + s * .8) + 'Z', 'class': 'lm-peak' }, svg);
-      if (zoom >= .9 && townFree(x, y + s * 2.6, k.name.length * tfs * .62, 'middle')) { var tx = el('text', { x: x, y: y + s * 2.6, 'text-anchor': 'middle', 'font-size': tfs * .92, 'class': 'lm-peak-name' }, svg); tx.textContent = k.name; }
-    });
-    data.towns.forEach(function (tw) {
-      var x = tw.xy[0], y = tw.xy[1], dx = (tw.anchor === 'end' ? -1 : 1) * 6 * u, dy = (tw.dy || 4) * u;
-      el('circle', { cx: x, cy: y, r: 2.2 * u, 'class': 'lm-town-dot' }, svg);
-      if (townFree(x + dx, y + dy, tw.name.length * tfs * .68, tw.anchor)) { var tx = el('text', { x: x + dx, y: y + dy, 'text-anchor': tw.anchor, 'font-size': tfs, 'class': 'lm-town' }, svg); tx.textContent = tw.name; }
+    function labelFree(x, y, w, anchor) { var bx = { x: anchor === 'end' ? x - w : anchor === 'middle' ? x - w / 2 : x, y: y - tfs, w: w, h: tfs * 1.3 }; if (bx.x < view.x || bx.x + bx.w > view.x + view.w || bx.y < view.y || bx.y + bx.h > view.y + view.h) return false; return !boxes.some(function (o) { return bx.x < o.x + o.w && bx.x + bx.w > o.x && bx.y < o.y + o.h && bx.y + bx.h > o.y; }) && (boxes.push(bx), true); }
+    (data.labels || []).forEach(function (L) {
+      var x = L.xy[0], y = L.xy[1], tx;
+      if (L.kind === 'peak') {
+        var s = 5 * u;
+        el('path', { d: 'M' + (x - s) + ' ' + (y + s * .8) + 'L' + x + ' ' + (y - s) + 'L' + (x + s) + ' ' + (y + s * .8) + 'Z', 'class': 'lm-peak' }, svg);
+        if (zoom >= .9 && labelFree(x, y + s * 2.6, L.name.length * tfs * .62, 'middle')) { tx = el('text', { x: x, y: y + s * 2.6, 'text-anchor': 'middle', 'font-size': tfs * .92, 'class': 'lm-peak-name' }, svg); tx.textContent = L.name; }
+      } else if (L.kind === 'water') {
+        if (labelFree(x, y, L.name.length * tfs * .6, 'middle')) { tx = el('text', { x: x, y: y, 'text-anchor': 'middle', 'font-size': tfs * .95, 'class': 'lm-water-name' }, svg); tx.textContent = L.name; }
+      } else {
+        var dx = (L.anchor === 'end' ? -1 : L.anchor === 'middle' ? 0 : 1) * 6 * u, dy = (L.dy || 4) * u;
+        el('circle', { cx: x, cy: y, r: 2.2 * u, 'class': 'lm-town-dot' }, svg);
+        if (labelFree(x + dx, y + dy, L.name.length * tfs * .68, L.anchor)) { tx = el('text', { x: x + dx, y: y + dy, 'text-anchor': L.anchor, 'font-size': tfs, 'class': 'lm-town' }, svg); tx.textContent = L.name; }
+      }
     });
     pins.forEach(function (p) {
       if (Math.abs(p.x - p.ox) + Math.abs(p.y - p.oy) > 1.5 * u) el('path', { d: 'M' + p.ox + ' ' + p.oy + 'L' + p.x + ' ' + p.y, 'class': 'lm-leader' }, svg);
     });
-    pins.forEach(function (p) {
+    pins.slice().sort(function (a, b) { return b.r - a.r; }).forEach(function (p) { // the big discs first, so a small one overlapped stays on top
       var g = el('g', { 'class': 'lm-pin' + (p.n ? '' : ' is-empty') + (openVenue === p.v ? ' is-open' : ''), role: 'button', tabindex: '0', 'data-venue': p.v }, svg);
       g.style.setProperty('--pin', p.color);
       var title = el('title', {}, g); title.textContent = p.v + ' — ' + (p.n ? p.n + ' upcoming' : 'nothing upcoming under these filters');
@@ -146,15 +161,16 @@
   function schedule() { if (!rafId) rafId = requestAnimationFrame(function () { rafId = 0; render(); }); }
 
   // ---- zoom and pan ----
+  var MIN_W = function () { return FRAME.w / (data && data.kind === 'urban' ? 24 : 16); }; // a city zooms a little deeper: its rooms sit a block apart
   function clamp() {
-    var maxW = FRAME.w * 1.3, minW = FRAME.w / 16;
+    var maxW = FRAME.w * 1.3, minW = MIN_W();
     view.w = Math.min(maxW, Math.max(minW, view.w)); view.h = view.w * FRAME.h / FRAME.w;
     view.x = Math.min(FRAME.w * 1.15 - view.w, Math.max(-FRAME.w * .15, view.x));
     view.y = Math.min(FRAME.h * 1.15 - view.h, Math.max(-FRAME.h * .15, view.y));
   }
   function zoomAt(cx, cy, f) { // cx, cy: client coordinates the zoom keeps still
     var r = svg.getBoundingClientRect(), k = view.w / r.width, fx = (cx - r.left) * k + view.x, fy = (cy - r.top) * k + view.y;
-    var w = view.w / f; w = Math.min(FRAME.w * 1.3, Math.max(FRAME.w / 16, w)); var ff = view.w / w;
+    var w = view.w / f; w = Math.min(FRAME.w * 1.3, Math.max(MIN_W(), w)); var ff = view.w / w;
     view.x = fx - (fx - view.x) / ff; view.y = fy - (fy - view.y) / ff; view.w = w; view.h = w * FRAME.h / FRAME.w;
     clamp(); closePop(); schedule();
   }
@@ -195,7 +211,7 @@
   $('mapView').querySelector('.lm-zoom').addEventListener('click', function (e) {
     var b = e.target.closest('button[data-z]'); if (!b) return;
     var r = svg.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
-    if (b.dataset.z === 'in') zoomAt(cx, cy, 1.6); else if (b.dataset.z === 'out') zoomAt(cx, cy, 1 / 1.6); else { closePop(); fit(); }
+    if (b.dataset.z === 'in') zoomAt(cx, cy, 1.6); else if (b.dataset.z === 'out') zoomAt(cx, cy, 1 / 1.6); else { closePop(); fit(); } // fit: the whole frame, out-of-town rooms included
   });
 
   // ---- the pin's card ----
@@ -237,17 +253,17 @@
     $('mapView').hidden = !on;
     var ag = document.querySelector('.agenda'); if (ag && $('teamsView').hidden) ag.hidden = on;
     closePop();
-    if (remember) { try { localStorage.setItem('kona-map', on ? '1' : '0'); if (on) localStorage.setItem('lqa-view', 'list'); } catch (e) { /* no storage */ } } // the shared code restores List; this file then opens the map over it
-    H.syncViewSwitch(); H.fitFilterBar(); placeKnob();
-    if (on) load().then(function () { fit(false); render(); });
+    if (remember) { try { localStorage.setItem('lqa-map', on ? '1' : '0'); if (on) localStorage.setItem('lqa-view', 'list'); } catch (e) { /* no storage */ } } // app.js restores List; this file then opens the map over it
+    H.syncViewSwitch(); H.fitFilterBar();
+    if (on) load().then(function () { home(false); render(); });
   }
-  window.LQAMap = { open: open, isOpen: isOpen, render: schedule, placeKnob: placeKnob };
+  window.LQAMap = { open: open, isOpen: isOpen, render: schedule };
   window.addEventListener('resize', function () { if (isOpen()) schedule(); });
   // at load: ?view=map, or the remembered choice — unless a ?team= link or a saved Month view got there first
   (function () {
     var q = new URLSearchParams(location.search), saved = null;
-    try { saved = localStorage.getItem('kona-map'); } catch (e) { /* unreadable storage */ }
-    if (q.get('team') || document.documentElement.classList.contains('month-open')) { if (saved === '1') try { localStorage.setItem('kona-map', '0'); } catch (e) { /* */ } return; }
+    try { saved = localStorage.getItem('lqa-map'); } catch (e) { /* unreadable storage */ }
+    if (q.get('team') || document.documentElement.classList.contains('month-open')) { if (saved === '1') try { localStorage.setItem('lqa-map', '0'); } catch (e) { /* */ } return; }
     if (q.get('view') === 'map' || (!q.get('view') && saved === '1')) open(true, false);
     else load(); // warm, so the first tap draws at once
   })();

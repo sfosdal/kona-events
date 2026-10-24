@@ -45,7 +45,6 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders:opsz,wght@10..72,500;10..72,700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css?v=__V__">
-<link rel="stylesheet" href="local-map.css?v=__V__"> <!-- Kona only: the Map view and the worded view stops -->
 <link rel="alternate" type="text/calendar" href="events.ics" title="Kona Events">
 </head>
 <body>
@@ -114,7 +113,7 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
   </label>
   <!-- the view switch: the events list | the home teams' seasons, a two-stop pill like the theme's -->
-  <div id="viewToggle" class="theme-toggle view-toggle" role="radiogroup" aria-label="View" data-active="events"><!-- List · Month · Teams · Map (Steve, 2026-09-14; Map + the words 2026-10-24, Kona only): Month is the list with the month calendar; app.js remembers the choice; the words hide when the bar is tight (local-map.css), the knob follows the lit word (local-map.js placeKnob) -->
+  <div id="viewToggle" class="theme-toggle view-toggle" role="radiogroup" aria-label="View" data-active="events"><!-- List · Month · Teams · Map (Steve, 2026-09-14; the words and the Map stop 2026-10-24): Month is the list with the month calendar, Map the venues on the ground (local-map.js); app.js remembers the choice -->
     <button id="eventsBtn" type="button" role="radio" aria-checked="true" data-view="events" title="Events">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg><span class="vt-label">List</span>
     </button>
@@ -314,7 +313,7 @@
   </section>
 </section>
 
-<!-- the Map view (Kona, 2026-10-24): the island with a pin on every room,
+<!-- the Map view (Steve, 2026-10-24): the island with a pin on every room,
      sized by its upcoming events under the filters in force; a tapped pin opens
      its card. Drawn by local-map.js from local-map.json (Natural Earth outline,
      built by scripts/build-local-map.mjs) — no tiles, nothing fetched off-site -->
@@ -483,6 +482,6 @@
 <script src="cities.js?v=__V__" defer></script> <!-- every city on here.events, for the Other Places sheet (generated in lqa, synced) -->
 <script src="filter.js?v=__V__" defer></script>
 <script src="app.js?v=__V__" defer></script>
-<script src="local-map.js?v=__V__" defer></script> <!-- Kona only: the Map view (after app.js, which lends it LQAHooks) -->
+<script src="local-map.js?v=__V__" defer></script> <!-- the Map view (after app.js, which lends it LQAHooks) -->
 </body>
 </html>
