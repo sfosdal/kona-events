@@ -104,10 +104,6 @@
 <!-- the masthead, folded into one line once it has scrolled off: eyebrow, title, stamp -->
 <div class="bar-title" hidden><span class="bar-eyebrow" data-teams="Kona">Hawaii</span><span class="bar-name">Kona</span><span class="bar-eyebrow" id="barUpdated"></span></div>
 <nav class="filterbar" aria-label="Filters">
-  <button id="filterToggle" class="chip" type="button" aria-expanded="false" aria-controls="filterPanel" title="Filters">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 3H2l8 9.46V19l4 2v-8.54z"/></svg>
-    <span>Filter</span>
-  </button>
   <label class="search-wrap">
     <input id="searchBox" type="search" placeholder="Search…" aria-label="Search events by venue, team, or type" autocomplete="off">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -125,6 +121,10 @@
     </button>
     <button id="mapBtn" type="button" role="radio" aria-checked="false" data-view="map" aria-controls="mapView" title="Map — the venues on the island">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/></svg><span class="vt-label">Map</span>
+    </button>
+    <button id="filterToggle" class="vt-filter" type="button" aria-expanded="false" aria-controls="filterPanel" title="Filters">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 3H2l8 9.46V19l4 2v-8.54z"/></svg>
+      <span class="vt-label">Filter</span>
     </button>
     <span class="theme-knob" aria-hidden="true"></span>
   </div>
@@ -244,7 +244,7 @@
       <div id="panelVenues" class="fp-list"><!-- the venue rows, injected by app.js --></div>
     </div>
     <div class="fp-group">
-      <h3>Kohala, Waimea &amp; Honokaʻa<span class="fp-allnone"><button type="button" class="fp-set" data-scope="town" data-on="1">Show All</button><i>·</i><button type="button" class="fp-set" data-scope="town" data-on="0">Hide All</button></span></h3>
+      <h3>Kohala<span class="fp-allnone"><button type="button" class="fp-set" data-scope="town" data-on="1">Show All</button><i>·</i><button type="button" class="fp-set" data-scope="town" data-on="0">Hide All</button></span></h3>
       <div id="panelVenuesTown" class="fp-list"><!-- rooms city.js marks area: 'town' — the Waikoloa resorts and shops, Kawaihae, the Kahilu in Waimea, the People's Theatre in Honokaʻa --></div>
       <h3>Event Type<span class="fp-allnone"><button type="button" class="fp-set" data-scope="type" data-on="1">Show All</button><i>·</i><button type="button" class="fp-set" data-scope="type" data-on="0">Hide All</button></span></h3>
       <div id="panelBadges" class="fp-list"><!-- the five kinds (city.js TYPES), injected by app.js --></div>

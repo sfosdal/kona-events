@@ -6,7 +6,7 @@ Festival's ten November days and the ranger programmes at Puʻuhonua o Hōnaunau
 and Kaloko-Honokōhau, with the Waikoloa resorts (the Waikoloa Bowl, the Hilton
 Waikoloa Village, Queens' MarketPlace, the Kings' Shops), Puʻukoholā Heiau at
 Kawaihae, the Kahilu Theatre in Waimea and the Honokaʻa People's Theatre as
-the "Kohala, Waimea & Honokaʻa" group — and the University of Hawaiʻi's
+the "Kohala" group (Waimea and Honokaʻa included) — and the University of Hawaiʻi's
 Rainbow Warriors (football, basketball) and Rainbow Wahine volleyball in a
 Teams view.
 
