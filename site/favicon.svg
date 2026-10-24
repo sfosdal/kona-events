@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" rx="6" fill="#2a3f5f"/>
+  <!-- Hualālai's long shield slope over Kailua Bay — the sun low in the west, the lava shoreline black, the sea in front -->
+  <circle cx="7.5" cy="9.5" r="2.8" fill="#f2b950"/>
+  <path d="M0 23 Q10 9.5 32 14 L32 23 Z" fill="#6d8a68"/>
+  <path d="M8 23 Q18 15 32 17.5 L32 23 Z" fill="#587a52"/>
+  <path d="M0 23 Q8 21.6 16 23.2 Q24 24.8 32 23 L32 25.4 Q24 26.6 16 25.2 Q8 23.8 0 25.4 Z" fill="#1e1a1a"/>
+  <path d="M0 25.4 Q8 23.8 16 25.2 Q24 26.6 32 25.4 L32 32 L0 32 Z" fill="#3a8fbf"/>
+  <path d="M3 28.6 Q7 27.4 11 28.6 M18 29.8 Q22 28.6 26 29.8" stroke="#8fcbe8" stroke-width="0.9" fill="none" stroke-linecap="round"/>
+</svg>
