@@ -7,6 +7,22 @@
    "time": "19:00",
    "url": "https://www.honokaapeople.com/event-details/street-fighter-2026-10-23-19-00",
    "type": "concert"
+  },
+  {
+   "venue": "Kahilu Theatre",
+   "title": "Dark Side of the Beach",
+   "date": "2026-10-24",
+   "time": "19:00",
+   "url": "https://kahilu.org/events/darkside-of-the-beach/",
+   "type": "arts"
+  },
+  {
+   "venue": "Honokaʻa People’s Theatre",
+   "title": "Street Fighter",
+   "date": "2026-10-24",
+   "time": "19:00",
+   "url": "https://www.honokaapeople.com/event-details/street-fighter-2026-10-24-19-00",
+   "type": "concert"
   }
  ]
 }
